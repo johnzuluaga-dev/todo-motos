@@ -65,21 +65,17 @@ function parseProduct(body = {}) {
   const nombre = String(body.nombre ?? '').trim();
   const referencia = String(body.referencia ?? '').trim();
   const medida = String(body.medida ?? '').trim();
-  const precio = Math.round(Number(body.precio));
 
   if (!nombre) throw new HttpError(400, 'El nombre es obligatorio.');
   if (nombre.length > 120) throw new HttpError(400, 'El nombre no puede pasar de 120 caracteres.');
   if (referencia.length > 60) throw new HttpError(400, 'La referencia no puede pasar de 60 caracteres.');
   if (medida.length > 60) throw new HttpError(400, 'La medida no puede pasar de 60 caracteres.');
-  if (!Number.isFinite(precio) || precio < 0 || precio > 100_000_000) {
-    throw new HttpError(400, 'El precio debe ser un número entre 0 y 100.000.000.');
-  }
 
+  // Sin precio: esta versión no lee ni modifica la columna "precio" (al crear se guarda 0).
   return {
     nombre,
     referencia: referencia || null,
     medida: medida || null,
-    precio,
     agotado: isTrue(body.agotado),
   };
 }
@@ -152,7 +148,8 @@ router.post(
 
     const { data: created, error } = await supabase
       .from(TABLE)
-      .insert({ ...data, imagen_url: img?.url ?? null, imagen_public_id: img?.publicId ?? null })
+      // precio: 0 → la columna sigue en la base (NOT NULL), pero esta versión no usa precios.
+      .insert({ ...data, precio: 0, imagen_url: img?.url ?? null, imagen_public_id: img?.publicId ?? null })
       .select(PUBLIC_COLS)
       .single();
 

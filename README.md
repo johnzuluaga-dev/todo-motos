@@ -2,7 +2,9 @@
 
 Catálogo web con carrito, pedido por WhatsApp y panel de administración.
 
-- **Catálogo público** (`/`): búsqueda por nombre, referencia o medida, orden por precio o nombre, modo claro/oscuro, carrito y botón "Pedir por WhatsApp" con cantidades, precios y total.
+> **Rama `catalogo-sin-precios`:** versión del catálogo **sin precios**. No se muestran en el catálogo, el carrito ni el mensaje de WhatsApp, y el panel no los pide. La columna `precio` de Supabase se conserva (el servidor guarda `0` al crear), así que puede usar la misma tabla que la versión con precios.
+
+- **Catálogo público** (`/`): búsqueda por nombre, referencia o medida, orden por nombre, modo claro/oscuro, carrito y botón "Pedir por WhatsApp" con las cantidades de cada producto.
 - **Panel de administración** (`/admin`): crear, editar y eliminar productos, marcar "Agotado" y subir fotos.
 - **Base de datos:** Supabase (Postgres). **Imágenes:** Cloudinary. **Servidor:** Node.js + Express.
 
@@ -52,7 +54,7 @@ Railway usa `npm start` automáticamente. El endpoint `/health` sirve como healt
 ## Cómo se usa el panel
 
 - Entra a `/admin` con tu `ADMIN_PASSWORD`. No hay enlace público al panel, guarda la dirección.
-- **Nuevo producto:** nombre y precio son obligatorios; referencia, medida (para llantas, ej. `90/90-17`) e imagen son opcionales.
+- **Nuevo producto:** solo el nombre es obligatorio; referencia, medida (para llantas, ej. `90/90-17`) e imagen son opcionales.
 - **Agotado:** el interruptor de cada producto lo marca al instante. Un producto agotado no se puede agregar al carrito.
 - **Eliminar:** borra el producto y su imagen de Cloudinary.
 - La sesión dura 8 horas y se bloquea por 15 minutos tras 5 contraseñas incorrectas.

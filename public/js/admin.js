@@ -1,4 +1,4 @@
-import { el, icon, productImage, money, toast } from './dom.js';
+import { el, icon, productImage, toast } from './dom.js';
 import { initThemeToggle } from './theme.js';
 
 const $ = (id) => document.getElementById(id);
@@ -107,8 +107,7 @@ function row(p) {
     productImage(p, 'row__img', 160),
     el('div', {},
       el('h3', { text: p.nombre }),
-      meta && el('small', { text: meta }),
-      el('small', { text: money(p.precio) })
+      meta && el('small', { text: meta })
     ),
     el('div', { class: 'row__tools' },
       el('label', { class: 'switch' }, toggle, el('span', { class: 'track' }), 'Agotado'),
@@ -158,7 +157,6 @@ function startEdit(p) {
   $('nombre').value = p.nombre;
   $('referencia').value = p.referencia ?? '';
   $('medida').value = p.medida ?? '';
-  $('precio').value = p.precio;
   $('agotado').checked = p.agotado;
   setPreview(p.imagen_url);
   $('remove-wrap').hidden = !p.imagen_url;
@@ -191,13 +189,11 @@ form.addEventListener('submit', async (e) => {
   error.textContent = '';
 
   if (!$('nombre').value.trim()) return (error.textContent = 'El nombre es obligatorio.');
-  if ($('precio').value === '' || Number($('precio').value) < 0) return (error.textContent = 'Escribe un precio válido.');
 
   const data = new FormData();
   data.set('nombre', $('nombre').value.trim());
   data.set('referencia', $('referencia').value.trim());
   data.set('medida', $('medida').value.trim());
-  data.set('precio', $('precio').value);
   data.set('agotado', $('agotado').checked);
   if ($('quitar_imagen').checked) data.set('quitar_imagen', 'true');
   const file = $('imagen').files[0];

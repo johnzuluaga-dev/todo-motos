@@ -1,4 +1,4 @@
-import { el, icon, productImage, money, normalize, toast } from './dom.js';
+import { el, icon, productImage, normalize, toast } from './dom.js';
 import { initThemeToggle } from './theme.js';
 import * as cart from './cart.js';
 
@@ -44,8 +44,6 @@ function visibleProducts() {
   }
   list = [...list];
   switch (state.sort) {
-    case 'price-asc': list.sort((a, b) => a.precio - b.precio); break;
-    case 'price-desc': list.sort((a, b) => b.precio - a.precio); break;
     case 'name-asc': list.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')); break;
   }
   return list;
@@ -85,8 +83,7 @@ function card(p) {
       media,
       el('div', { class: 'card__body' },
         el('h3', { class: 'card__title', text: p.nombre }),
-        meta && el('p', { class: 'card__meta', text: meta }),
-        el('p', { class: 'price', text: money(p.precio) })
+        meta && el('p', { class: 'card__meta', text: meta })
       )
     ),
     el('div', { class: 'card__actions' },
@@ -142,7 +139,7 @@ function openProduct(p) {
       el('button', {
         class: 'btn btn--primary', type: 'button',
         onClick: () => { cart.add(p.id, qty); productDialog.close(); toast(`Agregado: ${qty} × ${p.nombre}`); },
-      }, `Agregar · ${money(p.precio * qty)}`)
+      }, 'Agregar al pedido')
     );
   };
   draw();
@@ -160,7 +157,6 @@ function openProduct(p) {
           p.referencia && [el('dt', { text: 'Referencia' }), el('dd', { text: p.referencia })],
           p.medida && [el('dt', { text: 'Medida' }), el('dd', { text: p.medida })]
         ),
-        el('p', { class: 'price', text: money(p.precio) }),
         buy
       )
     )
@@ -194,10 +190,8 @@ function drawCart() {
           el('div', {},
             el('h3', { text: p.nombre }),
             el('small', { text: [p.referencia && `Ref: ${p.referencia}`, p.medida].filter(Boolean).join(' · ') }),
-            el('small', { text: `${money(p.precio)} c/u` }),
             el('div', { class: 'cart-item__row' },
-              stepper(qty, { small: true, onMinus: () => cart.setQty(p.id, qty - 1), onPlus: () => cart.setQty(p.id, qty + 1), min: 1 }),
-              el('span', { class: 'cart-item__sub', text: money(p.precio * qty) })
+              stepper(qty, { small: true, onMinus: () => cart.setQty(p.id, qty - 1), onPlus: () => cart.setQty(p.id, qty + 1), min: 1 })
             ),
             el('button', { class: 'link-btn', type: 'button', onClick: () => cart.remove(p.id) }, 'Quitar')
           )
@@ -205,7 +199,7 @@ function drawCart() {
       )
     ),
     el('div', { class: 'cart__foot' },
-      el('div', { class: 'cart__total' }, el('span', { text: `Total (${cart.count()} ${cart.count() === 1 ? 'artículo' : 'artículos'})` }), el('strong', { text: money(cart.total()) })),
+      el('div', { class: 'cart__total' }, el('span', { text: 'Total de artículos' }), el('strong', { text: String(cart.count()) })),
       el('button', { class: 'btn btn--wa btn--block', type: 'button', onClick: sendToWhatsApp }, icon('whatsapp'), 'Pedir por WhatsApp'),
       el('button', { class: 'btn btn--ghost btn--block', type: 'button', onClick: () => cart.clear() }, 'Vaciar carrito')
     )

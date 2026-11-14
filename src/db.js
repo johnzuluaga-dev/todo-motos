@@ -7,6 +7,7 @@ const supabase = createClient(config.supabaseUrl, config.supabaseKey, {
 });
 
 const TABLE = 'productos';
-const PUBLIC_COLS = 'id,nombre,referencia,medida,precio,imagen_url,agotado';
+// Versión sin precios: la columna "precio" nunca se lee ni se envía al navegador.
+const PUBLIC_COLS = 'id,nombre,referencia,medida,imagen_url,agotado';
 
 module.exports = { supabase, TABLE, PUBLIC_COLS };
