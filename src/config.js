@@ -36,5 +36,5 @@ module.exports = {
   sessionSecret: process.env.SESSION_SECRET,
   whatsappNumber: String(process.env.WHATSAPP_NUMBER || '').replace(/\D/g, ''),
   whatsappGreeting:
-    process.env.WHATSAPP_GREETING || 'Hola Todo Motos 👋, quiero cotizar los siguientes productos:',
+    process.env.WHATSAPP_GREETING || 'Hola Importadora Todo Motos 👋, quiero cotizar los siguientes productos:',
 };
