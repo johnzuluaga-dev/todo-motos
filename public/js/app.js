@@ -166,6 +166,7 @@ function openProduct(p) {
 
 function drawCart() {
   const lines = cart.lines();
+  const s = cart.summary();
 
   if (!lines.length) {
     cartDialog.replaceChildren(
@@ -200,6 +201,11 @@ function drawCart() {
     ),
     el('div', { class: 'cart__foot' },
       el('div', { class: 'cart__total' }, el('span', { text: 'Total de artículos' }), el('strong', { text: String(cart.count()) })),
+      ...(s.percent > 0 ? [
+        el('div', { class: 'cart__row cart__row--disc' },
+          el('span', { text: `Descuento por volumen en llantas (${s.tireUnits} unid.)` }),
+          el('span', { text: `${s.percent}%` })),
+      ] : []),
       el('button', { class: 'btn btn--wa btn--block', type: 'button', onClick: sendToWhatsApp }, icon('whatsapp'), 'Pedir por WhatsApp'),
       el('button', { class: 'btn btn--ghost btn--block', type: 'button', onClick: () => cart.clear() }, 'Vaciar carrito')
     )

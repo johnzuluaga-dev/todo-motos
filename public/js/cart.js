@@ -1,3 +1,5 @@
+import { orderSummary } from './discount.js';
+
 const KEY = 'todomotos-cart-v1';
 const MAX_QTY = 99;
 
@@ -39,6 +41,8 @@ export const lines = () =>
   items.map((i) => ({ product: catalog.get(i.id), qty: i.qty })).filter((l) => l.product);
 
 export const count = () => lines().reduce((sum, l) => sum + l.qty, 0);
+/** Llantas del pedido y % de descuento que les corresponde (ver discount.js). */
+export const summary = () => orderSummary(lines());
 export const qtyOf = (id) => items.find((i) => i.id === id)?.qty ?? 0;
 export { MAX_QTY };
 
@@ -77,6 +81,13 @@ export function buildWhatsAppUrl({ number, greeting }) {
     return `${index + 1}. ${p.nombre}${detail ? ` (${detail})` : ''}\n   Cantidad: ${qty}`;
   });
 
-  const text = [greeting, '', ...rows, '', `*Total de artículos: ${count()}*`, '', '¡Gracias!'].join('\n');
+  const s = summary();
+  const discountLines = s.percent > 0
+    ? [`Descuento por volumen en llantas (${s.tireUnits} unidades): ${s.percent}%`]
+    : [];
+
+  const text = [
+    greeting, '', ...rows, '', `*Total de artículos: ${count()}*`, ...discountLines, '', '¡Gracias!',
+  ].join('\n');
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 }
