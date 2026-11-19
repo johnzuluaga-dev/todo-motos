@@ -42,7 +42,17 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(publicDir, 'admin.html'));
 });
 
-app.use(express.static(publicDir, { maxAge: config.isProd ? '1h' : 0, index: 'index.html' }));
+// El código de la página (html, js, css) se revalida en cada visita: así los cambios se ven apenas
+// se despliegan (si no cambió, el navegador recibe un "304" muy liviano). Las imágenes sí se guardan 1 día.
+app.use(
+  express.static(publicDir, {
+    index: 'index.html',
+    setHeaders(res, filePath) {
+      if (/\.(html|js|css)$/i.test(filePath)) res.setHeader('Cache-Control', 'no-cache');
+      else res.setHeader('Cache-Control', 'public, max-age=86400');
+    },
+  })
+);
 
 // ── Manejo de errores ──────────────────────────
 // eslint-disable-next-line no-unused-vars
