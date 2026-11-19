@@ -241,16 +241,17 @@ function initPromo() {
   const box = $('promo');
   if (!box) return;
   const tiers = [...TIERS].sort((a, b) => a.min - b.min);
+  // Texto tal como lo definió el negocio: "De 20 a 30 unid 2%", ..., "De 50 en adelante el 5%".
   const range = (t, i) => {
     const next = tiers[i + 1];
-    return next ? `${t.min} a ${next.min - 1} llantas` : `${t.min} llantas o más`;
+    return next ? `De ${t.min} a ${next.min} unid ` : `De ${t.min} en adelante el `;
   };
   const group = (hidden) =>
     el('div', { class: 'promo__group', ...(hidden ? { 'aria-hidden': 'true' } : {}) },
       el('span', { class: 'promo__title', text: 'Descuento en llantas' }),
       ...tiers.flatMap((t, i) => [
         el('span', { class: 'promo__dot', text: '•' }),
-        el('span', { class: 'promo__item', text: `${range(t, i)}: ` }, el('strong', { text: `${t.pct}% de descuento` })),
+        el('span', { class: 'promo__item', text: range(t, i) }, el('strong', { text: `${t.pct}%` })),
       ]),
       el('span', { class: 'promo__dot', text: '•' })
     );
