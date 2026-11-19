@@ -74,6 +74,10 @@ function showState(title, text, retry = false) {
   stateBox.hidden = false;
 }
 
+/** Precio con la leyenda pequeña "IVA incluido". */
+const priceNode = (p) =>
+  el('p', { class: 'price' }, money(p.precio), el('small', { class: 'iva', text: 'IVA incluido' }));
+
 function card(p) {
   const media = productImage(p, 'card__media');
   if (p.agotado) media.append(el('div', { class: 'tag-out' }, el('span', { text: 'Agotado' })));
@@ -86,7 +90,7 @@ function card(p) {
       el('div', { class: 'card__body' },
         el('h3', { class: 'card__title', text: p.nombre }),
         meta && el('p', { class: 'card__meta', text: meta }),
-        el('p', { class: 'price', text: money(p.precio) })
+        priceNode(p)
       )
     ),
     el('div', { class: 'card__actions' },
@@ -160,7 +164,7 @@ function openProduct(p) {
           p.referencia && [el('dt', { text: 'Referencia' }), el('dd', { text: p.referencia })],
           p.medida && [el('dt', { text: 'Medida' }), el('dd', { text: p.medida })]
         ),
-        el('p', { class: 'price', text: money(p.precio) }),
+        priceNode(p),
         buy
       )
     )
@@ -170,6 +174,7 @@ function openProduct(p) {
 
 function drawCart() {
   const lines = cart.lines();
+  const s = cart.summary();
 
   if (!lines.length) {
     cartDialog.replaceChildren(
@@ -205,7 +210,14 @@ function drawCart() {
       )
     ),
     el('div', { class: 'cart__foot' },
-      el('div', { class: 'cart__total' }, el('span', { text: `Total (${cart.count()} ${cart.count() === 1 ? 'artículo' : 'artículos'})` }), el('strong', { text: money(cart.total()) })),
+      ...(s.percent > 0 ? [
+        el('div', { class: 'cart__row' }, el('span', { text: 'Subtotal' }), el('span', { text: money(s.subtotal) })),
+        el('div', { class: 'cart__row cart__row--disc' },
+          el('span', { text: `Descuento llantas (${s.tireUnits} unid. · ${s.percent}%)` }),
+          el('span', { text: `-${money(s.discount)}` })),
+      ] : []),
+      el('div', { class: 'cart__total' }, el('span', { text: `Total (${cart.count()} ${cart.count() === 1 ? 'artículo' : 'artículos'})` }), el('strong', { text: money(s.total) })),
+      el('p', { class: 'iva iva--cart', text: 'IVA incluido' }),
       el('button', { class: 'btn btn--wa btn--block', type: 'button', onClick: sendToWhatsApp }, icon('whatsapp'), 'Pedir por WhatsApp'),
       el('button', { class: 'btn btn--ghost btn--block', type: 'button', onClick: () => cart.clear() }, 'Vaciar carrito')
     )
