@@ -1,6 +1,7 @@
 import { el, icon, productImage, money, normalize, toast } from './dom.js';
 import { initThemeToggle } from './theme.js';
 import * as cart from './cart.js';
+import { TIERS } from './discount.js';
 
 const state = { products: [], search: '', sort: 'default', config: { whatsappNumber: '', whatsappGreeting: '' } };
 
@@ -246,6 +247,30 @@ function updateBadge() {
   if (cartDialog.open) drawCart();
 }
 
+// ── Barra animada con el descuento en llantas ──
+// Se arma con la misma tabla de discount.js, así nunca queda desactualizada.
+function initPromo() {
+  const box = $('promo');
+  if (!box) return;
+  const tiers = [...TIERS].sort((a, b) => a.min - b.min);
+  const range = (t, i) => {
+    const next = tiers[i + 1];
+    return next ? `${t.min} a ${next.min - 1} llantas` : `${t.min} llantas o más`;
+  };
+  const group = (hidden) =>
+    el('div', { class: 'promo__group', ...(hidden ? { 'aria-hidden': 'true' } : {}) },
+      el('span', { class: 'promo__title', text: 'Descuento en llantas' }),
+      ...tiers.flatMap((t, i) => [
+        el('span', { class: 'promo__dot', text: '•' }),
+        el('span', { class: 'promo__item', text: `${range(t, i)}: ` }, el('strong', { text: `${t.pct}% de descuento` })),
+      ]),
+      el('span', { class: 'promo__dot', text: '•' })
+    );
+  // 4 copias: con la animación de -25% el recorrido es continuo incluso en pantallas anchas.
+  box.replaceChildren(el('div', { class: 'promo__track' }, group(false), group(true), group(true), group(true)));
+  box.hidden = false;
+}
+
 // ── Inicio ─────────────────────────────────────
 initThemeToggle($('theme-toggle'));
 closeOnBackdrop(productDialog);
@@ -261,5 +286,6 @@ $('search').addEventListener('input', (e) => {
 });
 $('sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
+initPromo();
 updateBadge();
 load();
