@@ -73,6 +73,38 @@ function showState(title, text, retry = false) {
   stateBox.hidden = false;
 }
 
+/**
+ * Parte de abajo de la tarjeta: "Agregar" y, una vez agregado, el selector de cantidad
+ * (así se pueden sumar o quitar unidades sin salir del catálogo).
+ */
+function cardActions(p) {
+  if (p.agotado) {
+    return [el('button', { class: 'btn btn--primary btn--block', type: 'button', disabled: true }, 'Agotado')];
+  }
+  const q = cart.qtyOf(p.id);
+  if (q === 0) {
+    return [el('button', { class: 'btn btn--primary btn--block', type: 'button', onClick: () => cart.add(p.id, 1) }, 'Agregar')];
+  }
+  return [stepper(q, {
+    min: 0,
+    label: `Cantidad de ${p.nombre}`,
+    onMinus: () => cart.setQty(p.id, q - 1),
+    onPlus: () => cart.setQty(p.id, q + 1),
+  })];
+}
+
+/** Actualiza solo la parte de abajo de las tarjetas cuyo carrito cambió (sin redibujar fotos ni mover el scroll). */
+function syncCards() {
+  for (const box of grid.querySelectorAll('.card__actions[data-id]')) {
+    const p = state.products.find((x) => x.id === Number(box.dataset.id));
+    if (!p) continue;
+    const q = cart.qtyOf(p.id);
+    if (String(q) === box.dataset.q) continue;
+    box.dataset.q = String(q);
+    box.replaceChildren(...cardActions(p));
+  }
+}
+
 function card(p) {
   const media = productImage(p, 'card__media');
   if (p.agotado) media.append(el('div', { class: 'tag-out' }, el('span', { text: 'Agotado' })));
@@ -87,12 +119,7 @@ function card(p) {
         meta && el('p', { class: 'card__meta', text: meta })
       )
     ),
-    el('div', { class: 'card__actions' },
-      el('button', {
-        class: 'btn btn--primary btn--block', type: 'button', disabled: p.agotado,
-        onClick: () => { cart.add(p.id, 1); toast(`Agregado: ${p.nombre}`); },
-      }, p.agotado ? 'Agotado' : 'Agregar')
-    )
+    el('div', { class: 'card__actions', 'data-id': String(p.id), 'data-q': String(cart.qtyOf(p.id)) }, ...cardActions(p))
   );
 }
 
@@ -117,11 +144,11 @@ function closeOnBackdrop(dialog) {
 const closeButton = (dialog) =>
   el('button', { class: 'dialog__close', type: 'button', 'aria-label': 'Cerrar', onClick: () => dialog.close() }, icon('close'));
 
-function stepper(value, { onMinus, onPlus, small = false, min = 1 }) {
-  const out = el('output', { text: String(value), 'aria-live': 'polite' });
+/** Selector de cantidad: botón −, el número (no se escribe) y botón +. */
+function stepper(value, { onMinus, onPlus, small = false, min = 1, label = 'Cantidad' }) {
   return el('div', { class: `stepper${small ? ' stepper--sm' : ''}` },
     el('button', { type: 'button', 'aria-label': 'Quitar uno', disabled: value <= min, onClick: onMinus }, icon('minus')),
-    out,
+    el('output', { class: 'stepper__qty', 'aria-label': label, 'aria-live': 'polite', text: String(value) }),
     el('button', { type: 'button', 'aria-label': 'Agregar uno', disabled: value >= cart.MAX_QTY, onClick: onPlus }, icon('plus'))
   );
 }
@@ -136,7 +163,11 @@ function openProduct(p) {
       return;
     }
     buy.replaceChildren(
-      stepper(qty, { onMinus: () => { qty -= 1; draw(); }, onPlus: () => { qty += 1; draw(); } }),
+      stepper(qty, {
+        label: 'Cantidad a agregar',
+        onMinus: () => { qty -= 1; draw(); },
+        onPlus: () => { qty += 1; draw(); },
+      }),
       el('button', {
         class: 'btn btn--primary', type: 'button',
         onClick: () => { cart.add(p.id, qty); productDialog.close(); toast(`Agregado: ${qty} × ${p.nombre}`); },
@@ -168,6 +199,9 @@ function openProduct(p) {
 function drawCart() {
   const lines = cart.lines();
   const s = cart.summary();
+  // El carrito se redibuja completo en cada cambio: guardamos el scroll para no volver arriba.
+  const prevList = cartDialog.querySelector('.cart__list')?.scrollTop ?? 0;
+  const prevDialog = cartDialog.scrollTop;
 
   if (!lines.length) {
     cartDialog.replaceChildren(
@@ -193,7 +227,10 @@ function drawCart() {
             el('h3', { text: p.nombre }),
             el('small', { text: [p.referencia && `Ref: ${p.referencia}`, p.medida].filter(Boolean).join(' · ') }),
             el('div', { class: 'cart-item__row' },
-              stepper(qty, { small: true, onMinus: () => cart.setQty(p.id, qty - 1), onPlus: () => cart.setQty(p.id, qty + 1), min: 1 })
+              stepper(qty, {
+                small: true, min: 1, label: `Cantidad de ${p.nombre}`,
+                onMinus: () => cart.setQty(p.id, qty - 1), onPlus: () => cart.setQty(p.id, qty + 1),
+              })
             ),
             el('button', { class: 'link-btn', type: 'button', onClick: () => cart.remove(p.id) }, 'Quitar')
           )
@@ -211,6 +248,10 @@ function drawCart() {
       el('button', { class: 'btn btn--ghost btn--block', type: 'button', onClick: () => cart.clear() }, 'Vaciar carrito')
     )
   );
+
+  const list = cartDialog.querySelector('.cart__list');
+  if (list) list.scrollTop = prevList;
+  cartDialog.scrollTop = prevDialog;
 }
 
 function sendToWhatsApp() {
@@ -232,6 +273,7 @@ function updateBadge() {
     badge.classList.add('bump');
   }
   lastCount = n;
+  syncCards();
   if (cartDialog.open) drawCart();
 }
 
