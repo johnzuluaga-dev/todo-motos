@@ -1,7 +1,6 @@
 import { el, icon, productImage, normalize, toast } from './dom.js';
 import { initThemeToggle } from './theme.js';
 import * as cart from './cart.js';
-import { TIERS } from './discount.js';
 
 const state = { products: [], search: '', sort: 'default', config: { whatsappNumber: '', whatsappGreeting: '' } };
 
@@ -198,7 +197,6 @@ function openProduct(p) {
 
 function drawCart() {
   const lines = cart.lines();
-  const s = cart.summary();
   // El carrito se redibuja completo en cada cambio: guardamos el scroll para no volver arriba.
   const prevList = cartDialog.querySelector('.cart__list')?.scrollTop ?? 0;
   const prevDialog = cartDialog.scrollTop;
@@ -239,11 +237,6 @@ function drawCart() {
     ),
     el('div', { class: 'cart__foot' },
       el('div', { class: 'cart__total' }, el('span', { text: 'Total de artículos' }), el('strong', { text: String(cart.count()) })),
-      ...(s.percent > 0 ? [
-        el('div', { class: 'cart__row cart__row--disc' },
-          el('span', { text: `Descuento por volumen en llantas (${s.tireUnits} unid.)` }),
-          el('span', { text: `${s.percent}%` })),
-      ] : []),
       el('button', { class: 'btn btn--wa btn--block', type: 'button', onClick: sendToWhatsApp }, icon('whatsapp'), 'Pedir por WhatsApp'),
       el('button', { class: 'btn btn--ghost btn--block', type: 'button', onClick: () => cart.clear() }, 'Vaciar carrito')
     )
@@ -277,31 +270,6 @@ function updateBadge() {
   if (cartDialog.open) drawCart();
 }
 
-// ── Barra animada con el descuento en llantas ──
-// Se arma con la misma tabla de discount.js, así nunca queda desactualizada.
-function initPromo() {
-  const box = $('promo');
-  if (!box) return;
-  const tiers = [...TIERS].sort((a, b) => a.min - b.min);
-  // Texto tal como lo definió el negocio: "De 20 a 30 unid 2%", ..., "De 50 en adelante el 5%".
-  const range = (t, i) => {
-    const next = tiers[i + 1];
-    return next ? `De ${t.min} a ${next.min} unid ` : `De ${t.min} en adelante el `;
-  };
-  const group = (hidden) =>
-    el('div', { class: 'promo__group', ...(hidden ? { 'aria-hidden': 'true' } : {}) },
-      el('span', { class: 'promo__title', text: 'Descuento en llantas' }),
-      ...tiers.flatMap((t, i) => [
-        el('span', { class: 'promo__dot', text: '•' }),
-        el('span', { class: 'promo__item', text: range(t, i) }, el('strong', { text: `${t.pct}%` })),
-      ]),
-      el('span', { class: 'promo__dot', text: '•' })
-    );
-  // 4 copias: con la animación de -25% el recorrido es continuo incluso en pantallas anchas.
-  box.replaceChildren(el('div', { class: 'promo__track' }, group(false), group(true), group(true), group(true)));
-  box.hidden = false;
-}
-
 // ── Inicio ─────────────────────────────────────
 initThemeToggle($('theme-toggle'));
 closeOnBackdrop(productDialog);
@@ -317,6 +285,5 @@ $('search').addEventListener('input', (e) => {
 });
 $('sort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
-initPromo();
 updateBadge();
 load();
