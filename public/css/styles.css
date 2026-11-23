@@ -139,24 +139,6 @@ svg.icon { width: 22px; height: 22px; flex: none; }
 }
 .hero p { margin: 0; max-width: 520px; color: var(--muted); }
 
-/* ── Barra animada de descuento en llantas ───── */
-.promo { background: var(--red); color: #fff; overflow: hidden; white-space: nowrap; font-size: 15px; }
-.promo__track { display: flex; width: max-content; animation: promo-scroll 40s linear infinite; }
-.promo:hover .promo__track, .promo:focus-within .promo__track { animation-play-state: paused; }
-.promo__group { display: flex; align-items: center; gap: 22px; padding: 10px 22px 10px 0; flex: none; }
-.promo__title {
-  font-family: var(--display); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-  background: #fff; color: var(--red-hover); padding: 2px 12px; border-radius: 4px; font-size: 13px;
-}
-.promo__dot { opacity: 0.7; }
-.promo__item strong { font-weight: 700; }
-@keyframes promo-scroll { to { transform: translateX(-25%); } }
-@media (prefers-reduced-motion: reduce) {
-  .promo { white-space: normal; }
-  .promo__track { width: auto; flex-wrap: wrap; justify-content: center; }
-  .promo__group[aria-hidden='true'] { display: none; }
-  .promo__group { flex-wrap: wrap; justify-content: center; row-gap: 4px; }
-}
 
 /* ── Barra de herramientas ──────────────────── */
 main { flex: 1; padding-bottom: 48px; }

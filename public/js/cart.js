@@ -1,5 +1,4 @@
 import { money } from './dom.js';
-import { orderSummary } from './discount.js';
 
 const KEY = 'todomotos-cart-v1';
 const MAX_QTY = 99;
@@ -42,8 +41,12 @@ export const lines = () =>
   items.map((i) => ({ product: catalog.get(i.id), qty: i.qty })).filter((l) => l.product);
 
 export const count = () => lines().reduce((sum, l) => sum + l.qty, 0);
-/** Subtotal, llantas, % de descuento, descuento y total (ver discount.js). */
-export const summary = () => orderSummary(lines());
+/** Resumen del pedido sin descuentos. */
+export const summary = () => {
+  const subtotal = lines().reduce((sum, { product, qty }) =>
+    sum + (Number(product.precio) || 0) * qty, 0);
+  return { subtotal, total: subtotal };
+};
 export const total = () => summary().total;
 export const qtyOf = (id) => items.find((i) => i.id === id)?.qty ?? 0;
 export { MAX_QTY };
@@ -87,12 +90,9 @@ export function buildWhatsAppUrl({ number, greeting }) {
   });
 
   const s = summary();
-  const discountLines = s.percent > 0
-    ? [`Subtotal: ${money(s.subtotal)}`, `Descuento por ${s.tireUnits} llantas (${s.percent}%): -${money(s.discount)}`]
-    : [];
 
   const text = [
-    greeting, '', ...rows, '', ...discountLines, `*Total: ${money(s.total)}* (IVA incluido)`, '', '¡Gracias!',
+    greeting, '', ...rows, '', `*Total: ${money(s.total)}* (IVA incluido)`, '', '¡Gracias!',
   ].join('\n');
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 }
